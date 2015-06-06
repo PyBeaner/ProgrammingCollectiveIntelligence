@@ -121,7 +121,7 @@ DLCS_REQUEST_TIMEOUT = 444 # Seconds before socket triggers timeout
 DLCS_API_HOST = 'https://api.del.icio.us'
 DLCS_API_PATH = 'v1'
 DLCS_API = "%s/%s" % (DLCS_API_HOST, DLCS_API_PATH)
-DLCS_RSS = 'http://del.icio.us/rss/'
+DLCS_RSS = 'http://feeds.delicious.com/v2/rss'
 
 ISO_8601_DATETIME = '%Y-%m-%dT%H:%M:%SZ'
 
