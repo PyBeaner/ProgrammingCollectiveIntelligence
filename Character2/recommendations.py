@@ -178,7 +178,8 @@ if (__name__ == "__main__"):
     items = getRecommendations(prefs,'87')[0:30]
     print(items)
 
-    print("")
+    print("it will take some time to calculate the similarity between items")
     itemsSim = calculateSimilarItems(prefs,n=50)
+    print("after that,getting recommendations would be quite quick")
     items = getRecommendedItems(prefs,itemsSim,"87")[0:30]
     print(items)
