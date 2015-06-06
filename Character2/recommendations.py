@@ -97,6 +97,26 @@ def calculateSimilarItems(prefs,n=10):
         result[item] = scores
     return  result
 
+def getRecommendedItems(prefs,itemMatch,user):
+    userRatings = prefs[user]
+    scores ={}
+    totalSim = {}
+
+    for (item,rating) in userRatings.items():
+        for(similarity,item2) in itemMatch[item]:
+            if item2 in userRatings:continue
+
+            scores.setdefault(item2,0)
+            scores[item2]+=similarity*rating
+
+            totalSim.setdefault(item2,0)
+            totalSim[item2]+=similarity
+
+    rankings = [(score/totalSim[item],item) for item,score in scores.items()]
+    rankings.sort()
+    rankings.reverse()
+    return rankings
+
 def transformPrefs(prefs):
     result = {}
     for person in prefs:
@@ -105,6 +125,19 @@ def transformPrefs(prefs):
             # transform
             result[item][person] = prefs[person][item]
     return result
+
+def loadMovieLens(path="data/movielens/"):
+    movies = {}
+    for line in open(path+"u.item",encoding="latin"):
+        id,title = line.split("|")[0:2]
+        movies[id] = title
+
+    prefs = {}
+    for line in open(path+"u.data",encoding="latin"):
+        user,movieId,rating,ts = line.split("\t")
+        prefs.setdefault(user,{})
+        prefs[user][movies[movieId]] = float(rating)
+    return prefs
 
 if (__name__ == "__main__"):
     r = sim_distance(critics, "Lisa Rose", "Gene Seymour")
@@ -135,3 +168,17 @@ if (__name__ == "__main__"):
     print("item relationship")
     itemsSim = calculateSimilarItems(critics)
     print(itemsSim)
+
+    print("rankings for Toby")
+    r6 = getRecommendedItems(critics,itemsSim,'Toby')
+    print(r6)
+
+    print("movielens:recommendation for user(87)")
+    prefs = loadMovieLens()
+    items = getRecommendations(prefs,'87')[0:30]
+    print(items)
+
+    print("")
+    itemSim = calculateSimilarItems(prefs,n=50)
+    items = getRecommendedItems(prefs,itemsSim,"87")[0:30]
+    print(items)
