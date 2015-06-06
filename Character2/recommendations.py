@@ -88,7 +88,7 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
 def calculateSimilarItems(prefs,n=10):
     result = {}
     # item-key
-    itemPrefs = transformPrefs(prefs);
+    itemPrefs = transformPrefs(prefs)
     c=0
     for item in itemPrefs:
         c+=1
@@ -179,6 +179,6 @@ if (__name__ == "__main__"):
     print(items)
 
     print("")
-    itemSim = calculateSimilarItems(prefs,n=50)
+    itemsSim = calculateSimilarItems(prefs,n=50)
     items = getRecommendedItems(prefs,itemsSim,"87")[0:30]
     print(items)
