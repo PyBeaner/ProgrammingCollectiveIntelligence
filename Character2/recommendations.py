@@ -85,6 +85,17 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
     rankings.reverse()
     return rankings
 
+def calculateSimilarItems(prefs,n=10):
+    result = {}
+    # item-key
+    itemPrefs = transformPrefs(prefs);
+    c=0
+    for item in itemPrefs:
+        c+=1
+        if c%100==0:print("%d / %d"%(c,len(itemPrefs)))
+        scores = topMatches(itemPrefs,item,n=n,similarity=sim_distance)
+        result[item] = scores
+    return  result
 
 def transformPrefs(prefs):
     result = {}
@@ -120,3 +131,7 @@ if (__name__ == "__main__"):
     print(r5)
 
     print(getRecommendations(movies,"Just My Luck"))
+
+    print("item relationship")
+    itemsSim = calculateSimilarItems(critics)
+    print(itemsSim)
