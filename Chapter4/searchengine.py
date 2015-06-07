@@ -190,7 +190,8 @@ class searcher:
         weights = [
             (1.0,self.frequencyscore(rows)),
             (1.5,self.locationscore(rows)),
-            (2,self.distancescore(rows))
+            (2.0,self.distancescore(rows),),
+            (1.0,self.inboundlinkscore(rows))
         ]
         for (weight,scores) in weights:
             for url in totalscores:
@@ -207,6 +208,9 @@ class searcher:
 
     def query(self,q):
         rows,wordids = self.getmatchrows(q)
+        if len(rows)==0:
+            print("no result found")
+            return
         scores = self.getsortedlist(rows,wordids)
         rankedscores = sorted([(score,url) for url,score in scores.items()],reverse=1)
 
@@ -253,6 +257,14 @@ class searcher:
 
         return self.normalizescores(distances,smallIsBetter=True)
 
+    def inboundlinkscore(self,rows):
+        uniqueurls = set([row[0] for row in rows])
+        inboundcounts = dict([
+            (url,self.con.execute("select count(*) from link where toid=%d" % url).fetchone()[0])
+            for url in uniqueurls]
+        )
+        return self.normalizescores(inboundcounts)
+
 if(__name__=="__main__"):
     # pagelist = ["http://www.baidu.com"]
     # c = crawler("searchindex.db")
@@ -262,4 +274,4 @@ if(__name__=="__main__"):
     s = searcher("searchindex.db")
     # rows,wordids = s.getmatchrows("apple baidu")
     # print(rows)
-    s.query("music baidu")
+    s.query("新闻 音乐")
