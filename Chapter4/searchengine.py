@@ -180,6 +180,64 @@ class searcher:
         rows = [row for row in cur]
         return rows,wordids
 
+    def getsortedlist(self,rows,wordids):
+        # {url:score}
+        totalscores = dict([row[0],0] for row in rows)
+
+        # scoring functions
+        # weights = []
+        # weights = [(1.0,self.frequencyscore(rows))]
+        weights = [
+            (1.0,self.frequencyscore(rows)),
+            (1.0,self.locationscore(rows))
+        ]
+        for (weight,scores) in weights:
+            for url in totalscores:
+                totalscores[url] += weight*scores[url]
+        return totalscores
+
+    def geturlname(self,id):
+        row = self.con.execute(
+            "select url from urllist where rowid=%d" % id
+        ).fetchone()
+        if row:
+            return row[0]
+        return ""
+
+    def query(self,q):
+        rows,wordids = self.getmatchrows(q)
+        scores = self.getsortedlist(rows,wordids)
+        rankedscores = sorted([(score,url) for url,score in scores.items()],reverse=1)
+
+        for score,urlid in rankedscores[0:10]:
+            print("%f\t%s" %(score,self.geturlname(urlid)))
+
+    def normalizescores(self,scores,smallIsBetter=False):
+        vsmall = 0.00001 # prevent division by zero
+        normalizedscores = {}
+        if smallIsBetter:
+            minscore = min(scores.values())
+            normalizedscores = dict([(url, float(minscore)/max(score,vsmall)) for url,score in scores.items()])
+        else:
+            maxscore = max(scores.values())
+            if maxscore==0:maxscore=vsmall
+            normalizedscores = dict([(url,float(score)/maxscore) for url,score in scores.items()])
+        return normalizedscores
+
+    def frequencyscore(self,rows):
+        counts = dict([(row[0],0) for row in rows])
+        for row in rows:counts[row[0]]+=1
+        return self.normalizescores(counts)
+
+    def locationscore(self,rows):
+        locations = dict([row[0],1000000] for row in rows)
+        for row in rows:
+            # urlid,location1,location2,location3
+            loc = sum(row[1:])
+            if loc<locations[row[0]]:locations[row[0]]=loc
+
+        return self.normalizescores(locations,smallIsBetter=True)
+
 if(__name__=="__main__"):
     # pagelist = ["http://www.baidu.com"]
     # c = crawler("searchindex.db")
@@ -187,5 +245,6 @@ if(__name__=="__main__"):
     # c.crawl(pagelist)
 
     s = searcher("searchindex.db")
-    rows,wordids = s.getmatchrows("apple baidu")
-    print(rows)
+    # rows,wordids = s.getmatchrows("apple baidu")
+    # print(rows)
+    s.query("music baidu")
