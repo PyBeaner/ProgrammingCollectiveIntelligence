@@ -1,0 +1,5 @@
+Blog	htc	apple	moto	helio	nano	micro	pay	s	iphone	android	sim	soli	watch	altera	maomaobear	one	case	wwdc	project	x	atm
+科技要闻-新浪科技	5	5	2	3	2	2	2	4	5	2	6	0	3	0	1	2	0	7	0	2	0
+互联网新闻-新浪科技	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	2	0	0	0	0
+焦点新闻-新浪科技	0	0	0	0	0	0	0	0	0	0	0	0	0	0	2	0	0	0	0	0	0
+业界新闻-新浪科技	0	0	0	0	0	0	0	0	0	0	0	2	0	3	1	0	0	0	2	0	3

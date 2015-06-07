@@ -1,0 +1,4 @@
+http://rss.sina.com.cn/tech/rollnews.xml
+http://rss.sina.com.cn/news/allnews/tech.xml
+http://rss.sina.com.cn/tech/internet/home28.xml
+http://rss.sina.com.cn/tech/it/gn37.xml
