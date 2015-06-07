@@ -78,10 +78,10 @@ class crawler:
         u = self.con.execute(
             "SELECT rowid from urllist where url='%s'" % url
         ).fetchone()
-        if u:
+        if u!=None:
             # check if it's actually crawled
             v = self.con.execute(
-                "select * from wordlocation where urlid='%d'" % u[0]
+                "select * from wordlocation where urlid=%d" % u[0]
             ).fetchone()
             if v!=None:return True
         return False
@@ -138,5 +138,5 @@ class crawler:
 if(__name__=="__main__"):
     pagelist = ["http://www.baidu.com"]
     c = crawler("searchindex.db")
-    c.createindextables()
+    # c.createindextables()
     c.crawl(pagelist)
