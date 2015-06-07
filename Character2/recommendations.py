@@ -87,7 +87,7 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
 
 def calculateSimilarItems(prefs,n=10):
     result = {}
-    # item-key
+    # item based key
     itemPrefs = transformPrefs(prefs)
     c=0
     for item in itemPrefs:
@@ -95,7 +95,19 @@ def calculateSimilarItems(prefs,n=10):
         if c%100==0:print("%d / %d"%(c,len(itemPrefs)))
         scores = topMatches(itemPrefs,item,n=n,similarity=sim_distance)
         result[item] = scores
-    return  result
+    return result
+
+def calculateSimilarUsers(prefs,n=10):
+    result = {}
+    # user based key
+    c = 0
+    for person in prefs:
+        c+=1
+        if c%100==0:print("%d / %d"%(c,len(prefs)))
+        scores = topMatches(prefs,person,n=n,similarity=sim_distance)
+        result[person] = scores
+    return result
+
 
 def getRecommendedItems(prefs,itemMatch,user):
     userRatings = prefs[user]
@@ -116,6 +128,26 @@ def getRecommendedItems(prefs,itemMatch,user):
     rankings.sort()
     rankings.reverse()
     return rankings
+
+def getRecommendedItemsBasedOnUser(prefs,peopleMatch,user):
+    similarUsers = peopleMatch[user]
+    scores = {}
+
+    totalSim = {}
+    for similarity,other in similarUsers:
+        for item,rating in prefs[other].items():
+            if item in prefs[user]:continue
+
+            scores.setdefault(item,0)
+            scores[item]+=similarity*rating
+            totalSim.setdefault(item,0)
+            totalSim[item] += similarity
+
+    ranking = [(score/totalSim[item],item) for item,score in scores.items()]
+    ranking.sort()
+    ranking.reverse()
+    return ranking
+
 
 def transformPrefs(prefs):
     result = {}
@@ -178,8 +210,14 @@ if (__name__ == "__main__"):
     items = getRecommendations(prefs,'87')[0:30]
     print(items)
 
-    print("it will take some time to calculate the similarity between items")
-    itemsSim = calculateSimilarItems(prefs,n=50)
-    print("after that,getting recommendations would be quite quick")
-    items = getRecommendedItems(prefs,itemsSim,"87")[0:30]
+    # print("it will take some time to calculate the similarity between items")
+    # itemsSim = calculateSimilarItems(prefs,n=50)
+    # print("after that,getting recommendations would be quite quick")
+    # items = getRecommendedItems(prefs,itemsSim,"87")[0:30]
+    # print(items)
+
+    print("calculating similarity between people")
+    peopleSim = calculateSimilarUsers(prefs,n=50)
+    items = getRecommendedItemsBasedOnUser(prefs,peopleSim,"87")[0:30]
+    print("recommended items are:")
     print(items)
