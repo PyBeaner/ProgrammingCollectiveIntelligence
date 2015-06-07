@@ -19,18 +19,47 @@ class crawler:
 
     # Auxilliary function for getting an entry id and adding
     # it if it's not present
-    def getentryid(self,table,field,value,createnew=True):
-        return None
+    def getentryid(self,table,field,value,createnew=False):
+        cur = self.con.execute(
+            "select rowid from %s where %s='%s'" % (table,field,value)
+        )
+        res = cur.fetchone()
+        if not res:
+            if(createnew):
+                cur = self.con.execute(
+                    "insert into %s (%s) values ('%s')" % (table,field,value)
+                )
+                return cur.lastrowid
+        else:
+            return res[0] # the first column is "rowid"
 
     # Index an individual page
     def addtoindex(self,url,soup):
+        if(self.isindexed(url)):return
         print("Indexing %s" % url)
+
+        # Get the individual words
+        text = self.gettextonly(soup)
+        words = self.separatewords(text)
+
+        # Get the Url id
+        urlid = self.getentryid("urllist","url",url,createnew=True)
+
+        for i in range(len(words)):
+            word = words[i]
+            if word in ignorewords:continue
+            wordid = self.getentryid("wordlist","word",word,True)
+            self.con.execute(
+                "insert into wordlocation(urlid,wordid,location) VALUES(%d,%d,%d)"
+                %(urlid,wordid,i)
+            )
+
 
     # Extract the text from an HTML page (no tags)
     def gettextonly(self,soup):
         v = soup.string
         if v==None:
-            c = soup.content
+            c = soup.contents
             resulttext = ""
             for t in c:
                 subtext = self.gettextonly(t)
@@ -46,6 +75,15 @@ class crawler:
 
     # return whether a url is indexed
     def isindexed(self,url):
+        u = self.con.execute(
+            "SELECT rowid from urllist where url='%s'" % url
+        ).fetchone()
+        if u:
+            # check if it's actually crawled
+            v = self.con.execute(
+                "select * from wordlocation where urlid='%d'" % u[0]
+            ).fetchone()
+            if v!=None:return True
         return False
 
     # add a link between two pages
@@ -99,5 +137,6 @@ class crawler:
 
 if(__name__=="__main__"):
     pagelist = ["http://www.baidu.com"]
-    c = crawler("")
+    c = crawler("searchindex.db")
+    c.createindextables()
     c.crawl(pagelist)
