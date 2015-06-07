@@ -1,5 +1,6 @@
 from urllib import request
 from bs4 import *
+import sqlite3 as sqlite
 
 ignorewords = {'the',"of","to","and","a","in","is","it"}
 
@@ -7,13 +8,13 @@ ignorewords = {'the',"of","to","and","a","in","is","it"}
 class crawler:
     # Initialize the crawler with the name of database
     def __init__(self,dbname):
-        pass
+        self.con = sqlite.connect(dbname)
 
     def __del__(self):
-        pass
+        self.con.close()
 
     def dbcommit(self):
-        pass
+        self.con.commit()
 
     # Auxilliary function for getting an entry id and adding
     # it if it's not present
@@ -72,7 +73,18 @@ class crawler:
 
     # Create the database tables
     def createindextables(self):
-        pass
+        self.con.execute("create table urllist(url)")
+        self.con.execute("create table wordlist(word)")
+        self.con.execute("create table wordlocation(urlid,wordid,location)")
+        self.con.execute("create table link(fromid integer,toid integer)")
+        self.con.execute("create table linkwords(wordid,linkid)")
+
+        self.con.execute("create index wordidx on wordlist(word)")
+        self.con.execute("create index urlidx on urllist(url)")
+        self.con.execute("create index wordurlidx on wordlocation(wordid)")
+        self.con.execute("create index urltoidx on link(toid)")
+        self.con.execute("create index urlfromidx on link(fromid)")
+        self.con.commit()
 
 if(__name__=="__main__"):
     pagelist = ["http://www.baidu.com"]
