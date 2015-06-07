@@ -1,3 +1,5 @@
+#! encoding=utf-8
+
 from urllib import request
 from bs4 import *
 import sqlite3 as sqlite
@@ -135,8 +137,55 @@ class crawler:
         self.con.execute("create index urlfromidx on link(fromid)")
         self.con.commit()
 
+class searcher:
+    def __init__(self,dbname):
+        self.con = sqlite.connect(dbname)
+
+    def __del__(self):
+        self.con.close()
+
+    def getmatchrows(self,query):
+        # strings to build the query
+        fieldList = "w0.urlid"
+        tablelist = ""
+        clauselist = ""
+        wordids = []
+
+        words = query.split(" ")
+        tablenumber = 0
+
+        for word in words:
+            wordrow = self.con.execute(
+                "select rowid from wordlist where word='%s'" % word
+            ).fetchone()
+
+            if wordrow!=None:
+                wordid = wordrow[0]
+                wordids.append(wordid)
+                if tablenumber>0:
+                    tablelist += ","
+                    clauselist+= " and "
+                    clauselist += 'w%d.urlid=w%d.urlid and ' % (tablenumber-1,tablenumber)
+                fieldList += ",w%d.location" % tablenumber
+                tablelist += "wordlocation w%d" % tablenumber
+                clauselist+="w%d.wordid=%d" % (tablenumber,wordid)
+                tablenumber+=1
+
+        if not tablelist:
+            print("nothing matched")
+            return [],[]
+        fullquery = "select %s from %s where %s" % (fieldList,tablelist,clauselist)
+        print(fullquery)
+        cur = self.con.execute(fullquery)
+        rows = [row for row in cur]
+        return rows,wordids
+
 if(__name__=="__main__"):
-    pagelist = ["http://www.baidu.com"]
-    c = crawler("searchindex.db")
+    # pagelist = ["http://www.baidu.com"]
+    # c = crawler("searchindex.db")
     # c.createindextables()
-    c.crawl(pagelist)
+    # c.crawl(pagelist)
+
+    s = searcher("searchindex.db")
+    rows,wordids = s.getmatchrows("apple baidu")
+    print(rows)
