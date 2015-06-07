@@ -90,7 +90,16 @@ class crawler:
 
     # add a link between two pages
     def addlinkref(self,urlFrom,urlTo,linkText):
-        pass
+        words=self.separatewords(linkText)
+        fromid=self.getentryid('urllist','url',urlFrom,createnew=True)
+        toid=self.getentryid('urllist','url',urlTo,createnew=True)
+        if fromid==toid: return
+        cur=self.con.execute("insert into link(fromid,toid) values (%d,%d)" % (fromid,toid))
+        linkid=cur.lastrowid
+        for word in words:
+            if word in ignorewords: continue
+            wordid=self.getentryid('wordlist','word',word,createnew=True)
+            self.con.execute("insert into linkwords(linkid,wordid) values (%d,%d)" % (linkid,wordid))
 
     # Starting with a list of pages, do a breadth
     # first search to the given depth, indexing pages
@@ -105,7 +114,7 @@ class crawler:
                     print("Could not open %s" % page)
                     print("Due to:"+e.__str__())
                     continue
-                soup = BeautifulSoup(c.readall())
+                soup = BeautifulSoup(c.readall(),from_encoding="utf-8")
                 self.addtoindex(page,soup)
 
                 links = soup("a")
@@ -266,12 +275,10 @@ class searcher:
         return self.normalizescores(inboundcounts)
 
 if(__name__=="__main__"):
-    # pagelist = ["http://www.baidu.com"]
-    # c = crawler("searchindex.db")
+    pagelist = ["http://www.sina.com.cn","http://www.sohu.com"]
+    c = crawler("searchindex.db")
     # c.createindextables()
-    # c.crawl(pagelist)
+    c.crawl(pagelist)
 
-    s = searcher("searchindex.db")
-    # rows,wordids = s.getmatchrows("apple baidu")
-    # print(rows)
-    s.query("新闻 音乐")
+    # s = searcher("searchindex.db")
+    # s.query("新闻 音乐")
