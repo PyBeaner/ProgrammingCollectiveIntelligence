@@ -1,6 +1,7 @@
 from urllib import request
 from bs4 import *
 import sqlite3 as sqlite
+import re
 
 ignorewords = {'the',"of","to","and","a","in","is","it"}
 
@@ -27,11 +28,21 @@ class crawler:
 
     # Extract the text from an HTML page (no tags)
     def gettextonly(self,soup):
-        return None
+        v = soup.string
+        if v==None:
+            c = soup.content
+            resulttext = ""
+            for t in c:
+                subtext = self.gettextonly(t)
+                resulttext+=subtext
+            return resulttext
+        else:
+            return v.strip()
 
     # Separate the words by any non-whitespace character
     def separatewords(self,text):
-        return None
+        splitter = re.compile("\\W*")
+        return [s.lower() for s in splitter.split(text) if s!=""]
 
     # return whether a url is indexed
     def isindexed(self,url):
