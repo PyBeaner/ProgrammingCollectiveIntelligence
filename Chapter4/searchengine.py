@@ -131,6 +131,28 @@ class crawler:
                 self.dbcommit()
             pages = newpages
 
+    def calculatepagerank(self,iterations=20):
+        self.con.execute("drop table if EXISTS pagerank")
+        self.con.execute("create table pagerank(urlid PRIMARY KEY ,score)")
+
+        # initialize each url with a PageRank of 1
+        self.con.execute("insert into pagerank select rowid,1 from urllist")
+        self.con.commit()
+
+        for i in range(iterations):
+            print("Iteration %d" % i)
+            for (urlid,) in self.con.execute("select ROWID from urllist"):
+                pr = 0.15
+
+                for (linker,) in self.con.execute("select DISTINCT fromid from link where toid=%d" % urlid):
+                    linkerpr = self.con.execute("select score from pagerank where urlid=%d" % linker).fetchone()[0]
+
+                    linkerlinkscount = self.con.execute("select count(*) from link where fromid=%d" % linker).fetchone()[0]
+                    pr += 0.85*(linkerpr/linkerlinkscount)
+                self.con.execute("update pagerank set score=%f where urlid" % (pr,urlid))
+            self.con.commit()
+
+            
     # Create the database tables
     def createindextables(self):
         self.con.execute("create table urllist(url)")
