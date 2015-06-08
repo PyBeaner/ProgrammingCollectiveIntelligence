@@ -316,10 +316,10 @@ class searcher:
         return self.normalizescores(inboundcounts)
 
 if(__name__=="__main__"):
-    # pagelist = ["http://www.sina.com.cn","http://www.sohu.com"]
-    # c = crawler("searchindex.db")
+    pagelist = ["http://www.asp.net"]
+    c = crawler("searchindex.db")
     # c.createindextables()
-    # c.crawl(pagelist)
+    c.crawl(pagelist)
 
-    s = searcher("searchindex.db")
-    s.query("新闻 音乐")
+    # s = searcher("searchindex.db")
+    # s.query("新闻 音乐")
