@@ -54,6 +54,22 @@ class searchnet:
 
         self.con.commit()
 
+    def getallhiddenids(self,wordids,urlids):
+        ret = {}
+        for wid in wordids:
+            cur = self.con.execute("select toid from wordhidden where fromid=%d" % wid)
+            for row in cur:ret[row[0]] = 1
+
+        for uid in urlids:
+            cur = self.con.execute("select fromid from urlhidden where toid=%d" % uid)
+            for row in cur:ret[row[0]] = 1
+
+        return ret.keys()
+
+    def setupnetword(self,wordids,urlids):
+        # self.wordids = wordids
+        pass
+
 if __name__=="__main__":
     s = searchnet("nn.db")
     s.maketables()
