@@ -67,16 +67,62 @@ class searchnet:
         return ret.keys()
 
     def setupnetword(self,wordids,urlids):
-        # self.wordids = wordids
-        pass
+        self.wordids = wordids
+        self.hiddenids = self.getallhiddenids(wordids,urlids)
+        self.urlids = urlids
+
+        # node outputs
+        self.ai = [1.0]*len(self.wordids)
+        self.ah = [1.0]*len(self.hiddenids)
+        self.ao = [1.0]*len(self.urlids)
+
+        # create weights matrix
+        self.wi = [
+            [self.getstrength(wordid,hiddenid,0) for hiddenid in self.hiddenids]
+            for wordid in wordids
+        ]
+        self.wo = [
+            [self.getstrength(hiddenid,urlid,1) for urlid in self.urlids]
+            for hiddenid in self.hiddenids
+        ]
+
+    def feedforward(self):
+        # the only inputs are the query words
+        for i in range(len(self.wordids)):
+            self.ai[i] = 1.0
+
+        # hidden activations
+        for j in range(len(self.hiddenids)):
+            sum = 0.0
+            for i in range(len(self.wordids)):
+                sum = sum+self.ai[i]*self.wi[i][j]
+            self.ah[j] = tanh(sum)
+
+        # out activations
+        for k in range(len(self.urlids)):
+            sum = 0.0
+            for j in range(len(self.hiddenids)):
+                sum = sum+self.ah[j]*self.wo[j][k]
+
+            self.ao[k] = tanh(sum)
+
+        return self.ao[:]
+
+    def getresult(self,wordids,urlids):
+        self.setupnetword(wordids,urlids)
+        return self.feedforward()
+
 
 if __name__=="__main__":
     s = searchnet("nn.db")
-    s.maketables()
+    # s.maketables()
     wWorld,wRiver,wBank =101,102,103
     uWorldBank,uRiver,uEarth =201,202,203
     s.generatehiddennode([wWorld,wBank],[uWorldBank,uRiver,uEarth])
-    for c in s.con.execute('select * from wordhidden'):
-        print(c)
-    for c in s.con.execute('select * from urlhidden'):
-        print(c)
+    # for c in s.con.execute('select * from wordhidden'):
+    #     print(c)
+    # for c in s.con.execute('select * from urlhidden'):
+    #     print(c)
+
+    result = s.getresult([wWorld,wBank],[uWorldBank,uRiver,uEarth])
+    print(result)
