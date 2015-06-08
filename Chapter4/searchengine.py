@@ -5,6 +5,9 @@ from bs4 import *
 import sqlite3 as sqlite
 import re
 
+import nn
+mynet = nn.searchnet("nn.db")
+
 ignorewords = {'the',"of","to","and","a","in","is","it"}
 
 
@@ -223,7 +226,8 @@ class searcher:
             (1.0,self.distancescore(rows),),
             (1.0,self.inboundlinkscore(rows)),
             (1.0,self.pagerankscore(rows)),
-            (1.0,self.linktextscore(rows,wordids))
+            (1.0,self.linktextscore(rows,wordids)),
+            (1.0,self.nnscore(rows,wordids))
         ]
         for (weight,scores) in weights:
             for url in totalscores:
@@ -315,11 +319,18 @@ class searcher:
         )
         return self.normalizescores(inboundcounts)
 
+    def nnscore(self,rows,wordids):
+        urlids = [urlid for urlid in set([row[0] for row in rows])]
+        nnres = mynet.getresult(wordids,urlids)
+        scores = dict([(urlids[i],nnres[i]) for i in range(len(urlids))])
+        return self.normalizescores(scores)
+
+
 if(__name__=="__main__"):
     pagelist = ["http://www.asp.net"]
     c = crawler("searchindex.db")
     # c.createindextables()
-    c.crawl(pagelist)
+    # c.crawl(pagelist)
 
-    # s = searcher("searchindex.db")
-    # s.query("新闻 音乐")
+    s = searcher("searchindex.db")
+    s.query("新闻 音乐")
