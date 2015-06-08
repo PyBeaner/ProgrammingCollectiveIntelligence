@@ -75,7 +75,8 @@ class crawler:
 
     # Separate the words by any non-whitespace character
     def separatewords(self,text):
-        splitter = re.compile("\\W*")
+        # splitter = re.compile("\\W*")
+        splitter = re.compile("[\\s*,;#]*")
         return [s.lower() for s in splitter.split(text) if s!=""]
 
     # return whether a url is indexed
