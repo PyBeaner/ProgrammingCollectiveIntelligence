@@ -217,13 +217,13 @@ class searcher:
 
         # scoring functions
         # weights = []
-        # weights = [(1.0,self.frequencyscore(rows))]
         weights = [
             (1.0,self.frequencyscore(rows)),
             (1.0,self.locationscore(rows)),
             (1.0,self.distancescore(rows),),
             (1.0,self.inboundlinkscore(rows)),
-            (1.0,self.pagerankscore(rows))
+            (1.0,self.pagerankscore(rows)),
+            (1.0,self.linktextscore(rows,wordids))
         ]
         for (weight,scores) in weights:
             for url in totalscores:
@@ -266,6 +266,18 @@ class searcher:
         ranks = dict([(row[0],self.con.execute("select score from pagerank where urlid=%d" % row[0]).fetchone()[0])
                       for row in rows])
         return self.normalizescores(ranks)
+
+    def linktextscore(self,rows,wordids):
+        scores = dict([(row[0],0) for row in rows])
+
+        for row in rows:
+            for wordid in wordids:
+                cur = self.con.execute("select link.fromid,link.toid from link,linkwords "
+                                       "where linkwords.wordid=%d and linkwords.linkid=link.rowid and link.toid=%d" % (wordid,row[0]))
+                for (fromid,toid) in cur:
+                    pr = self.con.execute("select score from pagerank where urlid=%d" % fromid).fetchone()[0]
+                    scores[toid]+=pr
+        return self.normalizescores(scores)
 
     # frequency of keywords
     def frequencyscore(self,rows):
