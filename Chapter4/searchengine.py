@@ -152,7 +152,7 @@ class crawler:
                 self.con.execute("update pagerank set score=%f where urlid" % (pr,urlid))
             self.con.commit()
 
-            
+
     # Create the database tables
     def createindextables(self):
         self.con.execute("create table urllist(url)")
@@ -220,9 +220,10 @@ class searcher:
         # weights = [(1.0,self.frequencyscore(rows))]
         weights = [
             (1.0,self.frequencyscore(rows)),
-            (1.5,self.locationscore(rows)),
-            (2.0,self.distancescore(rows),),
-            (1.0,self.inboundlinkscore(rows))
+            (1.0,self.locationscore(rows)),
+            (1.0,self.distancescore(rows),),
+            (1.0,self.inboundlinkscore(rows)),
+            (1.0,self.pagerankscore(rows))
         ]
         for (weight,scores) in weights:
             for url in totalscores:
@@ -259,6 +260,12 @@ class searcher:
             if maxscore==0:maxscore=vsmall
             normalizedscores = dict([(url,float(score)/maxscore) for url,score in scores.items()])
         return normalizedscores
+
+    # ranks of pages
+    def pagerankscore(self,rows):
+        ranks = dict([(row[0],self.con.execute("select score from pagerank where urlid=%d" % row[0]).fetchone()[0])
+                      for row in rows])
+        return self.normalizescores(ranks)
 
     # frequency of keywords
     def frequencyscore(self,rows):
@@ -297,10 +304,10 @@ class searcher:
         return self.normalizescores(inboundcounts)
 
 if(__name__=="__main__"):
-    pagelist = ["http://www.sina.com.cn","http://www.sohu.com"]
-    c = crawler("searchindex.db")
+    # pagelist = ["http://www.sina.com.cn","http://www.sohu.com"]
+    # c = crawler("searchindex.db")
     # c.createindextables()
-    c.crawl(pagelist)
+    # c.crawl(pagelist)
 
-    # s = searcher("searchindex.db")
-    # s.query("新闻 音乐")
+    s = searcher("searchindex.db")
+    s.query("新闻 音乐")
