@@ -1,6 +1,7 @@
 import time
 import random
 import math
+import timeit
 
 people = [
     ("Seymour","BOS"),
@@ -82,6 +83,7 @@ def randomoptimize(domain,costf):
 
     return bestsol
 
+# limitation: local minimum
 def hillclimboptimize(domain,costf):
     # create a initial solution
     sol = [random.randint(domain[i][0],domain[i][1]) for i in range(len(domain))]
@@ -111,6 +113,33 @@ def hillclimboptimize(domain,costf):
             break
     return sol
 
+# avoid "local minimum":sometimes it take a "worse" solution
+def annealingoptimize(domain,costf,T=10000.0,cool=0.95,step=1):
+    # initialize the values randomly
+    vec = [ random.randint(domain[i][0],domain[i][1]) for i in range(len(domain)) ]
+
+    while T>0.1:
+        # choose one of the indices
+        i = random.randint(0,len(domain)-1)
+        # choose a direction to change
+        # dir = random.randint(-step,step)
+        dir = random.choice([step,-step])
+        vecb = vec[:]
+        vecb[i]+=dir
+        if vecb[i]<domain[i][0]:vecb[i]=domain[i][0]
+        elif vecb[i]>domain[i][1]:vecb[i]=domain[i][1]
+
+        # costs
+        ea = costf(vec)
+        eb = costf(vecb)
+        p = pow(math.e,(-eb-ea)/T) # probability of choosing the worse solution
+        if(eb<ea or random.random()<p):
+            vec = vecb
+
+        # decrease the temperature T
+        T *= cool
+    return vec
+
 if __name__ == "__main__":
     # s = [1,4,3,2,7,3,6,3,2,4,5,3]
     # printschedule(s)
@@ -118,7 +147,18 @@ if __name__ == "__main__":
     # print(cost)
     domain = [[0,8]]*len(people)*2
     # sol = randomoptimize(domain,schedulecost)
-    sol = hillclimboptimize(domain,schedulecost)
-    print("The best solution is:")
-    printschedule(sol)
-    print("it would cost:%f" % schedulecost(sol))
+    # sol = hillclimboptimize(domain,schedulecost)
+    # sol = annealingoptimize(domain,schedulecost)
+    # print("The best solution is:")
+    # printschedule(sol)
+    # print("it would cost:%f" % schedulecost(sol))
+
+    for optimization in [randomoptimize,hillclimboptimize,annealingoptimize]:
+        start = time.clock()
+        sol = optimization(domain,schedulecost)
+        end = time.clock()
+        print("The best solution using %s optimization is:" % str(optimization.__name__))
+        printschedule(sol)
+        print("it would cost:%f" % schedulecost(sol))
+        print("this optimization spent :%s seconds" % (end-start))
+        print("\n")
