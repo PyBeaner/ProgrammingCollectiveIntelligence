@@ -66,7 +66,7 @@ def schedulecost(sol):
 
     # extra day of car rental(50)
     if latestarrival>earliestdep:totalprice+=50
-    return totalprice
+    return totalprice+totalwait # $1 for one minute
 
 # domain: [0,8]*len(people)*2
 def randomoptimize(domain,costf):
@@ -82,13 +82,43 @@ def randomoptimize(domain,costf):
 
     return bestsol
 
+def hillclimboptimize(domain,costf):
+    # create a initial solution
+    sol = [random.randint(domain[i][0],domain[i][1]) for i in range(len(domain))]
+
+    while 1:
+        # neighboring solutions
+        neighbors = []
+        for j in range(len(domain)):
+            if sol[j]<domain[j][1]:
+                neighbor = sol[0:j] + [sol[j]+1] + sol[j+1:]
+                neighbors.append(neighbor)
+            if sol[j]>domain[j][0]:
+                neighbor = sol[0:j] + [sol[j]-1] + sol[j+1:]
+                neighbors.append(neighbor)
+
+        current = costf(sol)
+        best = current
+        for j in range(len(neighbors)):
+            # print("calculating solution:%s" % str(neighbors[j]))
+            cost = costf(neighbors[j])
+            if cost<best:
+                best = cost
+                sol = neighbors[j]
+
+        # no neighbor is better
+        if current == best:
+            break
+    return sol
 
 if __name__ == "__main__":
-    s = [1,4,3,2,7,3,6,3,2,4,5,3]
-    printschedule(s)
+    # s = [1,4,3,2,7,3,6,3,2,4,5,3]
+    # printschedule(s)
     # cost = schedulecost(s)
     # print(cost)
     domain = [[0,8]]*len(people)*2
-    sol = randomoptimize(domain,schedulecost)
-    print("The best solution is:"+str(sol))
+    # sol = randomoptimize(domain,schedulecost)
+    sol = hillclimboptimize(domain,schedulecost)
+    print("The best solution is:")
+    printschedule(sol)
     print("it would cost:%f" % schedulecost(sol))
