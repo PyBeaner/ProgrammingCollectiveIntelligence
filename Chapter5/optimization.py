@@ -68,9 +68,27 @@ def schedulecost(sol):
     if latestarrival>earliestdep:totalprice+=50
     return totalprice
 
+# domain: [0,8]*len(people)*2
+def randomoptimize(domain,costf):
+    best = 999999999
+    bestsol = None
+
+    for i in range(1000):
+        sol = [random.randint(domain[i][0],domain[i][1]) for i in range(len(domain))]
+        cost = costf(sol)
+        if cost<best:
+            best = cost
+            bestsol = sol
+
+    return bestsol
+
 
 if __name__ == "__main__":
     s = [1,4,3,2,7,3,6,3,2,4,5,3]
     printschedule(s)
-    cost = schedulecost(s)
-    print(cost)
+    # cost = schedulecost(s)
+    # print(cost)
+    domain = [[0,8]]*len(people)*2
+    sol = randomoptimize(domain,schedulecost)
+    print("The best solution is:"+str(sol))
+    print("it would cost:%f" % schedulecost(sol))
