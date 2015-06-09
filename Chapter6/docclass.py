@@ -56,10 +56,13 @@ class classifier:
             self.incf(f,cat)
         self.incc(cat)
 
+    def fprob(self,f,cat):
+        if self.catcount(cat)==0:return 0
+        return self.fcount(f,cat)/self.catcount(cat)
+
 if __name__ == "__main__":
     c = classifier(getfeatures=getwords)
     sampletrain(c)
     c.train('the quick brown fox jumps over the lazy dog','good')
     c.train('make quick money in the online casino','bad')
-    print(c.fcount("quick","good"))
-    print(c.fcount("quick","bad"))
+    print(c.fprob("quick","good"))
