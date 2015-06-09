@@ -60,9 +60,20 @@ class classifier:
         if self.catcount(cat)==0:return 0
         return self.fcount(f,cat)/self.catcount(cat)
 
+    def weightedprob(self,f,cat,prf,weight=1.0,ap=0.5):
+        basicprob = prf(f,cat)
+        totals = sum([self.fcount(f,cat) for cat in self.categories()])
+        bp = ((weight*ap)+(totals*basicprob))/(weight+totals)
+        return bp
+
 if __name__ == "__main__":
     c = classifier(getfeatures=getwords)
-    sampletrain(c)
     c.train('the quick brown fox jumps over the lazy dog','good')
     c.train('make quick money in the online casino','bad')
-    print(c.fprob("quick","good"))
+    # print(c.fprob("quick","good"))
+    sampletrain(c)
+    p = c.weightedprob("money","good",c.fprob)
+    print(p)
+    sampletrain(c)
+    p = c.weightedprob("money","good",c.fprob)
+    print(p)
