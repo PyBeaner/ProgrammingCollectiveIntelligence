@@ -1,5 +1,6 @@
 import re
 import math
+import sqlite3 as sqlite
 
 def getwords(doc):
     splitter = re.compile("\\W*")
@@ -22,39 +23,66 @@ class classifier:
         self.cc = {}
         self.getfeatures = getfeatures
 
+    def setdb(self,dbname):
+        self.con = sqlite.connect(dbname)
+        self.con.execute("create table if NOT EXISTS fc(feature,category,count)")
+        self.con.execute("create table if NOT EXISTS cc(category,count)")
+
     # increase the count of a feature
     def incf(self,f,cat):
-        self.fc.setdefault(f,{})
-        self.fc[f].setdefault(cat,0)
-        self.fc[f][cat] += 1
+        # self.fc.setdefault(f,{})
+        # self.fc[f].setdefault(cat,0)
+        # self.fc[f][cat] += 1
+
+        count = self.fcount(f,cat)
+        if count==0:
+            query = "insert into fc VALUES ('%s','%s',1)" % (f,cat)
+        else:
+            query = "update fc set count=%d where feature='%s' and category='%s'" % (count+1,f,cat)
+        self.con.execute(query)
 
     # increase the count of a category
     def incc(self,cat):
-        self.cc.setdefault(cat,0)
-        self.cc[cat]+=1
+        # self.cc.setdefault(cat,0)
+        # self.cc[cat]+=1
+        count = self.catcount(cat)
+        if count==0:
+            self.con.execute("insert into cc values('%s',1)" % (cat))
+        else:
+            self.con.execute("update cc set count=%d where category='%s'" %(count+1,cat))
 
     # the number of times a feature has appeared in a category
     def fcount(self,f,cat):
-        if f in self.fc and cat in self.fc[f]:
-            return self.fc[f][cat]
-        return 0
+        # if f in self.fc and cat in self.fc[f]:
+        #     return self.fc[f][cat]
+        # return 0
+        res = self.con.execute("select count from fc where feature='%s' and category='%s'" %(f,cat)).fetchone()
+        if not res:return 0
+        return res[0]
 
     def catcount(self,cat):
-        if cat in self.cc:
-            return self.cc[cat]
-        return 0
+        # if cat in self.cc:
+        #     return self.cc[cat]
+        # return 0
+        res = self.con.execute("select count from cc where category='%s'" % (cat)).fetchone()
+        if not res:return 0
+        return res[0]
 
     def totalcount(self):
-        return sum(self.cc.values())
+        # return sum(self.cc.values())
+        return self.con.execute("select sum(count) from cc").fetchone()[0]
 
     def categories(self):
-        return self.cc.keys()
+        # return self.cc.keys()
+        cur = self.con.execute("select category from cc")
+        return [row[0] for row in cur]
 
     def train(self,item,cat):
         features = self.getfeatures(item)
         for f in features:
             self.incf(f,cat)
         self.incc(cat)
+        self.con.commit()
 
     def fprob(self,f,cat):
         if self.catcount(cat)==0:return 0
@@ -159,6 +187,7 @@ class fisherclassifier(classifier):
 
 if __name__ == "__main__":
     c = classifier(getfeatures=getwords)
+    c.setdb("test1.db")
     c.train('the quick brown fox jumps over the lazy dog','good')
     c.train('make quick money in the online casino','bad')
     # print(c.fprob("quick","good"))
@@ -171,6 +200,7 @@ if __name__ == "__main__":
 
     print("naive---")
     naive = naivebayes(getfeatures=getwords)
+    naive.setdb("test1.db")
     sampletrain(naive)
     p = naive.prob("quick rabbit","good")
     print(p)
@@ -191,6 +221,7 @@ if __name__ == "__main__":
 
     print("fisher----")
     finsher = fisherclassifier(getwords)
+    finsher.setdb("test1.db")
     sampletrain(finsher)
     cat = finsher.classify("quick rabbit")
     print(cat)
