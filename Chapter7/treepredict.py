@@ -81,7 +81,7 @@ def buildtree(rows,scoref=entropy):
     best_sets = None
 
     column_count = len(rows[0])-1
-    for col in range(column_count):
+    for col in range(0,column_count):
         # generate the list of different value in this column
         column_values = {}
         for row in rows:
@@ -112,9 +112,9 @@ def printtree(tree,indent=""):
         print(str(tree.col)+":"+str(tree.value)+"?")
         # branches
         print(indent+"T->")
-        printtree(tree.tb,indent+"  ")
+        printtree(tree.tb,indent+" ")
         print(indent+"F->")
-        printtree(tree.fb,indent+"  ")
+        printtree(tree.fb,indent+" ")
 
 if __name__ == "__main__":
     g = giniimpurity(my_data)
