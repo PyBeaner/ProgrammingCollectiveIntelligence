@@ -20,7 +20,12 @@ my_data = [
 ]
 
 class decisionnode():
-    pass
+    def __init__(self,col=-1,value=None,results=None,tb=None,fb=None):
+        self.col = col
+        self.value = value
+        self.results = results
+        self.tb = tb
+        self.fb = fb
 
 # Divides a set on a specific column. Can handle numeric or nominal values
 def divideset(rows,column,value):
@@ -66,6 +71,39 @@ def entropy(rows):
         p = float(counts[key])/len(rows)
         ret -= p * log(p,2)
     return ret
+
+def buildtree(rows,scoref=entropy):
+    if len(rows)==0:return decisionnode()
+    current_score = scoref(rows)
+    # Set up some variables to track the best criteria
+    best_gain = 0.0
+    best_criteria = None
+    best_sets = None
+
+    column_count = len(rows[0])-1
+    for col in range(column_count):
+        # generate the list of different value in this column
+        column_values = {}
+        for row in rows:
+            column_values[row[col]] = 1
+        # try dividing
+        for value in column_values.keys():
+            set1,set2 = divideset(rows,col,value)
+            # information again
+            p = float(len(set1))/len(rows)
+            gain = current_score-p*scoref(set1)-(1-p)*scoref(set2)
+            # the bigger gain means set1,set2 is better with smaller impurity
+            if gain>best_gain and len(set1)>0 and len(set2)>0:
+                best_gain = gain
+                best_criteria = col,value
+                best_sets = set1,set2
+        # create the subbranches
+        if best_gain>0:
+            trueBranch = buildtree(best_sets[0])
+            falseBranch = buildtree(best_sets[1])
+            return decisionnode(col=best_criteria[0],value=best_criteria[1],tb=trueBranch,fb=falseBranch)
+        else:
+            return decisionnode(results=uniquecounts(rows))
 
 if __name__ == "__main__":
     g = giniimpurity(my_data)
