@@ -57,9 +57,24 @@ def giniimpurity(rows):
         imp += p1*(1-p1)# p1 to select an randomly item in category(k1),and 1-p1 to put it in other categories
     return imp
 
+# Entropy is the sum of p(x)log(p(x)) across all
+def entropy(rows):
+    from math import log
+    counts = uniquecounts(rows)
+    ret = 0.0
+    for key in counts.keys():
+        p = float(counts[key])/len(rows)
+        ret -= p * log(p,2)
+    return ret
+
 if __name__ == "__main__":
+    g = giniimpurity(my_data)
+    print(g)
+    e = entropy(my_data)
+    print(e)
+
     set1,set2 = divideset(my_data,2,"yes")
     print(set1)
     print(set2)
-
-    print(giniimpurity([[1],[2],[3],[4]]))
+    print(giniimpurity(set1))
+    print(entropy(set1))
