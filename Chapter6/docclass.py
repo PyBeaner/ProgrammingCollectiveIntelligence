@@ -66,6 +66,51 @@ class classifier:
         bp = ((weight*ap)+(totals*basicprob))/(weight+totals)
         return bp
 
+class naivebayes(classifier):
+    def __init__(self,getfeatures):
+        super(naivebayes,self).__init__(getfeatures)
+        self.thresholds = {}
+
+    def setthreshold(self,cat,t):
+        self.thresholds[cat] = t
+
+    def getthreshold(self,cat):
+        if cat not in self.thresholds:return 1.0
+        return self.thresholds[cat]
+
+    # Guess category of a document
+    def classify(self,item,default=None):
+        probs = {}
+        max = 0.0
+        best = None
+        for cat in self.categories():
+            probs[cat] = self.prob(item,cat)
+            if probs[cat]>max:
+                max = probs[cat]
+                best = cat
+
+        for cat in probs:
+            if cat==best:continue
+            # if the best prob < its threshold * other category:
+            # return default(unknown)
+            if probs[cat]*self.getthreshold(best)>probs[best]:return default
+        return best
+
+    def docprob(self,item,cat):
+        features = self.getfeatures(item)
+        p = 1
+        for f in features:
+            p *= self.weightedprob(f,cat,self.fprob)
+        return p
+
+    def prob(self,item,cat):
+        catprob = self.catcount(cat)/self.totalcount()
+        docprob = self.docprob(item,cat)
+
+        # Pr(A | B) = Pr(B | A) x Pr(A)/Pr(B)
+        # Pr(B) is the same
+        return catprob*docprob
+
 if __name__ == "__main__":
     c = classifier(getfeatures=getwords)
     c.train('the quick brown fox jumps over the lazy dog','good')
@@ -77,3 +122,23 @@ if __name__ == "__main__":
     sampletrain(c)
     p = c.weightedprob("money","good",c.fprob)
     print(p)
+
+    print("naive---")
+    naive = naivebayes(getfeatures=getwords)
+    sampletrain(naive)
+    p = naive.prob("quick rabbit","good")
+    print(p)
+    p = naive.prob("quick rabbit","bad")
+    print(p)
+
+    print("classify---")
+    cat = naive.classify("quick rabbit",default="unknown")
+    print(cat)
+    cat = naive.classify("quick money",default="unknown")
+    print(cat)
+    naive.setthreshold("bad",3.0)# avoid classify a good one as a bad one
+    cat = naive.classify("quick money",default="unknown")
+    print(cat)
+    for i in range(10):sampletrain(naive)
+    cat = naive.classify("quick money",default="unknown")
+    print(cat)
