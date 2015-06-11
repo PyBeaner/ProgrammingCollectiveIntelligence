@@ -111,6 +111,30 @@ class naivebayes(classifier):
         # Pr(B) is the same
         return catprob*docprob
 
+class fisherclassifier(classifier):
+    def cprob(self,f,cat):
+        clf = self.fprob(f,cat)
+        if clf==0:return 0
+        freqsum = sum([self.fprob(f,cat) for cat in self.categories()])
+        p = clf/freqsum
+        return p
+
+    def fisherprob(self,item,cat):
+        p = 1
+        features = self.getfeatures(item)
+        for f in features:
+            p *= self.weightedprob(f,cat,self.cprob)
+        fscore = -2 * math.log(p)
+        return self.invchi2(fscore,len(features)*2)
+
+    def invchi2(self, chi, df):
+        m = chi/2.0
+        sum = term = math.exp(-m)
+        for i in range(1,df/2):
+            term*=m/i
+            sum+=term
+        return min(sum,1.0)
+
 if __name__ == "__main__":
     c = classifier(getfeatures=getwords)
     c.train('the quick brown fox jumps over the lazy dog','good')
