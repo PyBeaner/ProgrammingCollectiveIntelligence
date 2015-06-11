@@ -43,7 +43,23 @@ def uniquecounts(rows):
         results[r]+=1
     return results
 
+# Probability that a randomly placed item will be in the wrong category
+def giniimpurity(rows):
+    total = len(rows)
+    counts = uniquecounts(rows)
+    imp = 0
+    for k1 in counts:
+        p1 = float(counts[k1])/total
+        # for k2 in counts:
+        #     if k1==k2:continue
+        #     p2 = float(counts[k2])/total
+        #     imp+=p1*p2
+        imp += p1*(1-p1)# p1 to select an randomly item in category(k1),and 1-p1 to put it in other categories
+    return imp
+
 if __name__ == "__main__":
     set1,set2 = divideset(my_data,2,"yes")
     print(set1)
     print(set2)
+
+    print(giniimpurity([[1],[2],[3],[4]]))
