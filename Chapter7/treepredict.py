@@ -105,6 +105,17 @@ def buildtree(rows,scoref=entropy):
         else:
             return decisionnode(results=uniquecounts(rows))
 
+def printtree(tree,indent=""):
+    if tree.results:
+        print(str(tree.results))
+    else:
+        print(str(tree.col)+":"+str(tree.value)+"?")
+        # branches
+        print(indent+"T->")
+        printtree(tree.tb,indent+"  ")
+        print(indent+"F->")
+        printtree(tree.fb,indent+"  ")
+
 if __name__ == "__main__":
     g = giniimpurity(my_data)
     print(g)
@@ -112,7 +123,10 @@ if __name__ == "__main__":
     print(e)
 
     set1,set2 = divideset(my_data,2,"yes")
-    print(set1)
-    print(set2)
+    # print(set1)
+    # print(set2)
     print(giniimpurity(set1))
     print(entropy(set1))
+
+    tree = buildtree(my_data,entropy)
+    printtree(tree)
