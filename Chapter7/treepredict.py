@@ -34,6 +34,15 @@ def divideset(rows,column,value):
     set2 = [row for row in rows if not split_function(row)]
     return (set1,set2)
 
+# Create counts of possible results (The last column of the row is the result)
+def uniquecounts(rows):
+    results = {}
+    for row in rows:
+        r = row[-1]
+        if r not in results:results[r] = 0
+        results[r]+=1
+    return results
+
 if __name__ == "__main__":
     set1,set2 = divideset(my_data,2,"yes")
     print(set1)
