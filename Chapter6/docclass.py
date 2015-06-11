@@ -112,6 +112,27 @@ class naivebayes(classifier):
         return catprob*docprob
 
 class fisherclassifier(classifier):
+    def __init__(self,getfeatures):
+        super(fisherclassifier,self).__init__(getfeatures)
+        self.minimums = {}
+
+    def setminimum(self,cat,min):
+        self.minimums[cat] = min
+
+    def getminimum(self,cat):
+        if cat not in self.minimums:return 0
+        return self.minimums[cat]
+
+    def classify(self,item,default=None):
+        best = default
+        max = 0.0
+        for c in self.categories():
+            p = self.fisherprob(item,c)
+            if p>self.getminimum(c) and p>max:
+                best = c
+                max = p
+        return best
+
     def cprob(self,f,cat):
         clf = self.fprob(f,cat)
         if clf==0:return 0
@@ -119,6 +140,7 @@ class fisherclassifier(classifier):
         p = clf/freqsum
         return p
 
+    # always between 0 and 1
     def fisherprob(self,item,cat):
         p = 1
         features = self.getfeatures(item)
@@ -130,7 +152,7 @@ class fisherclassifier(classifier):
     def invchi2(self, chi, df):
         m = chi/2.0
         sum = term = math.exp(-m)
-        for i in range(1,df/2):
+        for i in range(1,int(df/2)):
             term*=m/i
             sum+=term
         return min(sum,1.0)
@@ -165,4 +187,18 @@ if __name__ == "__main__":
     print(cat)
     for i in range(10):sampletrain(naive)
     cat = naive.classify("quick money",default="unknown")
+    print(cat)
+
+    print("fisher----")
+    finsher = fisherclassifier(getwords)
+    sampletrain(finsher)
+    cat = finsher.classify("quick rabbit")
+    print(cat)
+    cat = finsher.classify("quick money")
+    print(cat)
+    finsher.setminimum("bad",0.8)
+    cat = finsher.classify("quick money")
+    print(cat)
+    finsher.setminimum("good",0.8)
+    cat = finsher.classify("quick rabbit")
     print(cat)
