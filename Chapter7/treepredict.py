@@ -145,7 +145,7 @@ def drawnode(draw, tree, x, y):
     right = x+(w1+w2)/2
 
     # draw the condition string
-    draw.text((x-20,y-10),str(tree.col)+":"+str(tree.value),(0,0,0))
+    draw.text((x-20,y-10),column_names[tree.col]+":"+str(tree.value),(0,0,0))
     # draw links to the branches
     draw.line((x,y,left+w1/2,y+100), fill=(255,0,0))
     draw.line((x,y,right-w2/2,y+100),fill=(255,0,0))
@@ -196,5 +196,5 @@ if __name__ == "__main__":
 
     drawtree(tree,"tree.jpg")
 
-    c = classify(["(direct)","USA","yes",5],tree)
+    c = classify(["(direct)","USA","no",22],tree)
     print("classifying...",c)
