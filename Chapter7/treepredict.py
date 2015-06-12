@@ -162,6 +162,23 @@ def drawtree(tree,jpeg="tree.jpg"):
     drawnode(draw,tree,w/2,20)
     img.save(jpeg,"jpeg")
 
+def classify(observation,tree):
+    if tree.results:
+        return tree.results
+    v = observation[tree.col]
+    branch = None
+    if isinstance(v,int) or isinstance(v,float):
+        if v>=tree.value:
+            branch = tree.tb
+        else:
+            branch = tree.fb
+    else:
+        if v==tree.value:
+            branch = tree.tb
+        else:
+            branch = tree.fb
+    return classify(observation,branch)
+
 if __name__ == "__main__":
     g = giniimpurity(my_data)
     print(g)
@@ -178,3 +195,6 @@ if __name__ == "__main__":
     printtree(tree)
 
     drawtree(tree,"tree.jpg")
+
+    c = classify(["(direct)","USA","yes",5],tree)
+    print("classifying...",c)
