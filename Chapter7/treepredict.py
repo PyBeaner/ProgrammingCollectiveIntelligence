@@ -19,6 +19,8 @@ my_data = [
     ['kiwitobes','France','yes',19,'Basic']
 ]
 
+column_names = ["referrer","country","xx","age","purchase"]
+
 class decisionnode():
     def __init__(self,col=-1,value=None,results=None,tb=None,fb=None):
         self.col = col
@@ -97,19 +99,19 @@ def buildtree(rows,scoref=entropy):
                 best_gain = gain
                 best_criteria = col,value
                 best_sets = set1,set2
-        # create the subbranches
-        if best_gain>0:
-            trueBranch = buildtree(best_sets[0])
-            falseBranch = buildtree(best_sets[1])
-            return decisionnode(col=best_criteria[0],value=best_criteria[1],tb=trueBranch,fb=falseBranch)
-        else:
-            return decisionnode(results=uniquecounts(rows))
+    # create the subbranches
+    if best_gain>0:
+        trueBranch = buildtree(best_sets[0])
+        falseBranch = buildtree(best_sets[1])
+        return decisionnode(col=best_criteria[0],value=best_criteria[1],tb=trueBranch,fb=falseBranch)
+    else:
+        return decisionnode(results=uniquecounts(rows))
 
 def printtree(tree,indent=""):
     if tree.results:
         print(str(tree.results))
     else:
-        print(str(tree.col)+":"+str(tree.value)+"?")
+        print(column_names[tree.col]+":"+str(tree.value)+"?")
         # branches
         print(indent+"T->")
         printtree(tree.tb,indent+" ")
