@@ -118,6 +118,18 @@ def printtree(tree,indent=""):
         print(indent+"F->")
         printtree(tree.fb,indent+" ")
 
+def getwidth(tree):
+    if not isinstance(tree,decisionnode):return 0
+    if not tree.tb and not tree.fb:
+        return 1
+    return getwidth(tree.tb)+getwidth(tree.fb)
+
+def getdepth(tree):
+    if not isinstance(tree,decisionnode):return 0
+    if not tree.tb and not tree.fb:return 0
+    return max(getdepth(tree.tb),getdepth(tree.fb)) + 1
+
+
 if __name__ == "__main__":
     g = giniimpurity(my_data)
     print(g)
